@@ -41,9 +41,9 @@ function Crossw1rd(container_id) {
     this.container = $('<div class="crossw1rd"></div>').appendTo(c);
     this.populateClues(function() {
 			self.initDimensions();
-			self.drawClues();
 			self.drawGrid();
 			self.drawControls();
+			self.drawClues();
 			self.adjustDimensions();
 			self.mapKeyBindings();
 			// check for & load saved state

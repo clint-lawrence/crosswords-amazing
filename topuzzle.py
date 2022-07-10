@@ -17,6 +17,17 @@ import argparse
 import csv
 import json
 from pprint import pp
+from typing import Literal
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class Clue:
+    x: int
+    y: int
+    direction: Literal["A", "B"]
+    word: str
+    clue: str
 
 
 parser = argparse.ArgumentParser()
@@ -26,26 +37,48 @@ parser.add_argument("by")
 
 args = parser.parse_args()
 
-d = {
-    "title": args.title,
-    "by": args.by,
-    "clues": []
-}
+
+
+start_cells = set()
+clues = []
 
 with open(args.in_file, newline='') as csvfile:
     csv_reader = csv.reader(csvfile)
     next(csv_reader)
-    for i, row in enumerate(csv_reader):
+    for row in csv_reader:
         x, y, direction, word, clue = row
-        d["clues"].append(
-            {
-                "d": direction,
-                "n": i+1,
-                "x": int(x),
-                "y": int(y),
-                "a": word,
-                "c": clue
-            }
-        )
-        
+        x = int(x)
+        y = int(y)
+        start_cells.add((y,x))
+        clues.append(Clue(x, y, direction, word, clue))
+
+start_cell_to_clue_number = {
+    (y, x): number
+    for number, (y, x) in enumerate(sorted(start_cells), start=1)
+}
+
+clue_to_number = {
+    clue: start_cell_to_clue_number[(clue.y, clue.x)]
+    for clue in clues
+}
+
+clues.sort(key=lambda clue: (clue.direction, clue.y, clue.x))
+
+d = {
+    "title": args.title,
+    "by": args.by,
+    "clues": [
+        {
+            "d": clue.direction,
+            "n": clue_to_number[clue],
+            "x": clue.x,
+            "y": clue.y,
+            "a": clue.word,
+            "c": clue.clue,
+        }
+        for clue in clues
+    ],
+}
+
+
 print(json.dumps(d, indent=4))
